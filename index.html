@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Хостинг</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #8A2BE2, #9370DB);
+            color: white;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .button {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 10px;
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+        }
+        
+        .nav-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-10px);
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .success {
+            background: rgba(0, 255, 0, 0.2);
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+        }
+        
+        .bot-list {
+            margin-top: 15px;
+        }
+        
+        .bot-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Telegram Хостинг</h1>
+            <p>Бесплатный хостинг для ботов и изображений</p>
+        </header>
+        
+        <div id="bot-hosting" class="section active">
+            <h2>Хостинг Telegram бота</h2>
+            <div id="bot-status" class="status">Статус: Не активен</div>
+            <button class="button" onclick="startBot()">Запустить бота</button>
+            <button class="button" onclick="stopBot()">Остановить бота</button>
+            
+            <h3>Загрузить бота</h3>
+            <input type="file" id="bot-file" accept=".py,.zip">
+            <button class="button" onclick="uploadBot()">Загрузить</button>
+            
+            <h3>Установить библиотеки</h3>
+            <input type="text" id="libs-input" placeholder="Например: requests==2.25.1 python-dotenv==0.15.0">
+            <button class="button" onclick="installLibs()">Установить</button>
+            
+            <h3>Редактировать код</h3>
+            <textarea id="bot-code" placeholder="Введите код вашего бота здесь..."></textarea>
+            <button class="button" onclick="saveCode()">Сохранить код</button>
+        </div>
+        
+        <div id="image-hosting" class="section">
+            <h2>Хостинг изображений</h2>
+            <input type="file" id="image-file" accept="image/*">
+            <button class="button" onclick="uploadImage()">Загрузить изображение</button>
+            <div id="image-result"></div>
+        </div>
+        
+        <div id="file-upload" class="section">
+            <h2>Загрузка файлов</h2>
+            <input type="file" id="file-input">
+            <button class="button" onclick="uploadFile()">Загрузить файл</button>
+            <div id="file-result"></div>
+        </div>
+        
+        <div id="bot-management" class="section">
+            <h2>Управление ботами</h2>
+            <div class="bot-list">
+                <div class="bot-item">
+                    <h3>Пример бота</h3>
+                    <p>Статус: Остановлен</p>
+                    <button class="button">Запустить</button>
+                    <button class="button">Редактировать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <div class="nav-btn active" onclick="showSection('bot-hosting')">🤖</div>
+        <div class="nav-btn" onclick="showSection('image-hosting')">🖼️</div>
+        <div class="nav-btn" onclick="showSection('file-upload')">📁</div>
+        <div class="nav-btn" onclick="showSection('bot-management')">⚙️</div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.setText("Готово").show();
+        
+        // Показ выбранной секции
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
+        
+        // Функции для работы с ботами
+        function startBot() {
+            document.getElementById('bot-status').textContent = "Статус: Запускается...";
+            setTimeout(() => {
+                document.getElementById('bot-status').textContent = "Статус: Активен";
+                document.getElementById('bot-status').className = "status success";
+            }, 1500);
+        }
+        
+        function stopBot() {
+            document.getElementById('bot-status').textContent = "Статус: Останавливается...";
+            setTimeout(() => {
+                document.getElementById('bot-status').textContent = "Статус: Не активен";
+                document.getElementById('bot-status').className = "status";
+            }, 1500);
+        }
+        
+        function uploadBot() {
+            const fileInput = document.getElementById('bot-file');
+            if (fileInput.files.length === 0) {
+                alert("Пожалуйста, выберите файл");
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const status = document.getElementById('bot-status');
+            status.textContent = "Загрузка бота...";
+            
+            // Эмуляция загрузки
+            setTimeout(() => {
+                status.textContent = "Бот загружен и готов к запуску!";
+                status.className = "status success";
+            }, 2000);
+        }
+        
+        function installLibs() {
+            const libsInput = document.getElementById('libs-input');
+            if (!libsInput.value.trim()) {
+                alert("Введите библиотеки для установки");
+                return;
+            }
+            
+            const status = document.getElementById('bot-status');
+            status.textContent = "Установка библиотек...";
+            
+            // Эмуляция установки
+            setTimeout(() => {
+                status.textContent = "Библиотеки успешно установлены!";
+                status.className = "status success";
+            }, 2000);
+        }
+        
+        function saveCode() {
+            const codeArea = document.getElementById('bot-code');
+            if (!codeArea.value.trim()) {
+                alert("Введите код бота");
+                return;
+            }
+            
+            const status = document.getElementById('bot-status');
+            status.textContent = "Сохранение кода...";
+            
+            // Эмуляция сохранения
+            setTimeout(() => {
+                status.textContent = "Код успешно сохранен!";
+                status.className = "status success";
+            }, 1500);
+        }
+        
+        // Функции для работы с изображениями
+        function uploadImage() {
+            const fileInput = document.getElementById('image-file');
+            if (fileInput.files.length === 0) {
+                alert("Пожалуйста, выберите изображение");
+                return;
+            }
+            
+            const resultDiv = document.getElementById('image-result');
+            resultDiv.textContent = "Загрузка изображения на Telegraph...";
+            
+            // Эмуляция загрузки на Telegraph
+            setTimeout(() => {
+                const randomUrl = "https://telegra.ph/file/" + Math.random().toString(36).substring(2, 10) + ".jpg";
+                resultDiv.innerHTML = `<div class="status success">Изображение загружено!</div>
+                                      <p>Ссылка: <a href="${randomUrl}" target="_blank">${randomUrl}</a></p>`;
+            }, 2000);
+        }
+        
+        // Функции для загрузки файлов
+        function uploadFile() {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files.length === 0) {
+                alert("Пожалуйста, выберите файл");
+                return;
+            }
+            
+            const resultDiv = document.getElementById('file-result');
+            resultDiv.textContent = "Загрузка файла...";
+            
+            // Эмуляция загрузки файла
+            setTimeout(() => {
+                resultDiv.innerHTML = `<div class="status success">Файл успешно загружен!</div>`;
+            }, 2000);
+        }
+        
+        // Обработчик для MainButton Telegram
+        tg.MainButton.onClick(function() {
+            tg.showAlert("Приложение готово к использованию!");
+        });
+    </script>
+</body>
+</html>
