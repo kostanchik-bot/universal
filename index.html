@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Server Manager</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent-color: #bb86fc;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-primary), #000000);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--accent-color), #6200ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .btn {
+            padding: 14px 25px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-color), #6200ea);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(187, 134, 252, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .progress-container {
+            margin: 20px 0;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent-color), #6200ea);
+            border-radius: 10px;
+            transition: width 2s ease-in-out;
+        }
+
+        .server-info {
+            display: none;
+            background: var(--glass-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .server-detail {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .server-detail span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 15px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 70px;
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--accent-color), #6200ea);
+        }
+
+        .nav-btn i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .nav-btn span {
+            font-size: 12px;
+        }
+
+        .control-panel {
+            display: none;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .planet-icon {
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle at 30% 30%, #bb86fc, #3700b3);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 10px rgba(187, 134, 252, 0.5);
+        }
+
+        .planet-icon::after {
+            content: '';
+            position: absolute;
+            top: 25%;
+            left: 60%;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        .server-list {
+            margin-top: 20px;
+        }
+
+        .server-item {
+            background: var(--glass-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        .server-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-online {
+            background-color: #4caf50;
+        }
+
+        .status-offline {
+            background-color: #f44336;
+        }
+
+        .status-starting {
+            background-color: #ff9800;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Minecraft Server Manager</h1>
+            <p class="subtitle">Создай свой сервер и играй с друзьями</p>
+        </header>
+
+        <div id="mainScreen">
+            <div class="card">
+                <h2>Создание сервера</h2>
+                <div class="input-group">
+                    <label for="serverName">Название сервера (только английские буквы)</label>
+                    <input type="text" id="serverName" placeholder="MyAwesomeServer">
+                </div>
+                <button class="btn btn-primary" onclick="createServer()">
+                    <div class="planet-icon"></div>
+                    Создать сервер
+                </button>
+
+                <div class="progress-container hidden" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="server-info" id="serverInfo">
+                    <h3>Ваш сервер готов!</h3>
+                    <div class="server-detail">
+                        <span>IP адрес:</span>
+                        <span id="serverIp">mc.example.com</span>
+                    </div>
+                    <div class="server-detail">
+                        <span>Порт:</span>
+                        <span id="serverPort">25565</span>
+                    </div>
+                    <div class="server-detail">
+                        <span>Статус:</span>
+                        <span id="serverStatus">Online</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="server-list" id="serverList">
+                <h2>Ваши серверы</h2>
+                <div id="serversContainer"></div>
+            </div>
+        </div>
+
+        <div class="card control-panel" id="controlPanel">
+            <h2>Управление сервером</h2>
+            
+            <div class="input-group">
+                <label for="controlServerName">Название сервера</label>
+                <input type="text" id="controlServerName" placeholder="Введите название сервера">
+            </div>
+            
+            <div class="control-buttons">
+                <button class="btn btn-secondary" onclick="stopServer()">
+                    <i>⏹️</i> Остановить
+                </button>
+                <button class="btn btn-secondary" onclick="restartServer()">
+                    <i>🔄</i> Перезагрузить
+                </button>
+                <button class="btn btn-secondary" onclick="showDeleteConfirm()">
+                    <i>🗑️</i> Удалить
+                </button>
+                <button class="btn btn-secondary" onclick="showServerStatus()">
+                    <i>📊</i> Статус
+                </button>
+            </div>
+
+            <div class="server-info hidden" id="statusInfo">
+                <h3>Статус сервера</h3>
+                <div class="server-detail">
+                    <span>Название:</span>
+                    <span id="statusName">MyServer</span>
+                </div>
+                <div class="server-detail">
+                    <span>Игроков онлайн:</span>
+                    <span id="statusPlayers">0/20</span>
+                </div>
+                <div class="server-detail">
+                    <span>IP адрес:</span>
+                    <span id="statusIp">mc.example.com</span>
+                </div>
+                <div class="server-detail">
+                    <span>Порт:</span>
+                    <span id="statusPort">25565</span>
+                </div>
+                <div class="server-detail">
+                    <span>Пинг:</span>
+                    <span id="statusPing">24ms</span>
+                </div>
+            </div>
+
+            <div class="server-info hidden" id="deleteConfirm">
+                <h3>Подтверждение удаления</h3>
+                <p>Для удаления сервера введите "delete my server" ниже</p>
+                <div class="input-group">
+                    <input type="text" id="deleteConfirmation" placeholder="delete my server">
+                </div>
+                <button class="btn btn-primary" onclick="deleteServer()">Удалить сервер</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-btn active" onclick="showScreen('create')">
+            <i>🌐</i>
+            <span>Создать</span>
+        </div>
+        <div class="nav-btn" onclick="showScreen('control')">
+            <i>⚙️</i>
+            <span>Управление</span>
+        </div>
+        <div class="nav-btn" onclick="showScreen('status')">
+            <i>📈</i>
+            <span>Мониторинг</span>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Текущий активный экран
+        let activeScreen = 'create';
+        let userId = tg.initDataUnsafe.user?.id || Math.floor(Math.random() * 1000000);
+        
+        // Загрузка серверов при запуске
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserServers();
+        });
+        
+        // Функция для показа определенного экрана
+        function showScreen(screen) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (screen === 'create') {
+                document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+                document.getElementById('mainScreen').classList.remove('hidden');
+                document.getElementById('controlPanel').classList.add('hidden');
+                activeScreen = 'create';
+            } else if (screen === 'control') {
+                document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
+                document.getElementById('mainScreen').classList.add('hidden');
+                document.getElementById('controlPanel').classList.remove('hidden');
+                activeScreen = 'control';
+            } else if (screen === 'status') {
+                document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
+                tg.showPopup({
+                    title: "Мониторинг",
+                    message: "Здесь будет отображаться статистика по всем вашим серверам",
+                    buttons: [{type: "ok"}]
+                });
+            }
+        }
+        
+        // Загрузка серверов пользователя
+        function loadUserServers() {
+            // В реальном приложении здесь будет fetch к API
+            // Для демонстрации используем заглушку
+            const servers = [
+                {name: "MyServer1", ip: "mc-abc123.server.com", port: 25565, status: "running"},
+                {name: "MyServer2", ip: "mc-def456.server.com", port: 25566, status: "stopped"}
+            ];
+            displayServers(servers);
+        }
+        
+        // Отображение списка серверов
+        function displayServers(servers) {
+            const container = document.getElementById('serversContainer');
+            container.innerHTML = '';
+            
+            if (servers.length === 0) {
+                container.innerHTML = '<p>У вас пока нет серверов</p>';
+                return;
+            }
+            
+            servers.forEach(server => {
+                const serverItem = document.createElement('div');
+                serverItem.className = 'server-item';
+                
+                const statusClass = server.status === 'running' ? 'status-online' : 
+                                  server.status === 'starting' ? 'status-starting' : 'status-offline';
+                
+                serverItem.innerHTML = `
+                    <div>
+                        <span class="server-status ${statusClass}"></span>
+                        <strong>${server.name}</strong>
+                    </div>
+                    <div>
+                        <span>${server.status === 'running' ? 'Online' : 'Offline'}</span>
+                    </div>
+                `;
+                
+                container.appendChild(serverItem);
+            });
+        }
+        
+        // Функция создания сервера
+        function createServer() {
+            const serverName = document.getElementById('serverName').value;
+            
+            // Проверка имени сервера
+            if (!serverName) {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Введите название сервера",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
+            
+            if (!/^[a-zA-Z0-9_]+$/.test(serverName)) {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Используйте только английские буквы, цифры и нижнее подчеркивание",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
+            
+            // Показываем прогресс бар
+            document.getElementById('progressContainer').classList.remove('hidden');
+            const progressBar = document.getElementById('progressBar');
+            
+            // Анимация заполнения прогресс бара
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    // Имитация создания сервера
+                    simulateServerCreation(serverName);
+                } else {
+                    width += 1;
+                    progressBar.style.width = width + '%';
+                }
+            }, 50);
+        }
+        
+        // Симуляция создания сервера
+        function simulateServerCreation(serverName) {
+            // Генерация случайных данных сервера
+            const randomId = Math.random().toString(36).substring(2, 10);
+            const serverIp = `mc.${randomId}.minecraftserver.com`;
+            const serverPort = Math.floor(Math.random() * 20000) + 10000;
+            
+            // Показываем информацию о сервере
+            document.getElementById('serverIp').textContent = serverIp;
+            document.getElementById('serverPort').textContent = serverPort;
+            document.getElementById('serverStatus').textContent = 'Online';
+            document.getElementById('serverInfo').classList.remove('hidden');
+            
+            // Обновляем список серверов
+            loadUserServers();
+            
+            tg.showPopup({
+                title: "Успех",
+                message: "Сервер успешно создан!",
+                buttons: [{type: "ok"}]
+            });
+        }
+        
+        // Функция остановки сервера
+        function stopServer() {
+            const serverName = document.getElementById('controlServerName').value;
+            
+            if (!serverName) {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Введите название сервера",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
+            
+            tg.showPopup({
+                title: "Остановка сервера",
+                message: `Сервер "${serverName}" будет остановлен.`,
+                buttons: [{type: "ok"}, {type: "cancel"}]
+            });
+        }
+        
+        // Функция перезагрузки сервера
+        function restartServer() {
+            const serverName = document.getElementById('controlServerName').value;
+            
+            if (!serverName) {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Введите название сервера",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
+            
+            tg.showPopup({
+                title: "Перезагрузка сервера",
+                message: `Сервер "${serverName}" будет перезагружен.`,
+                buttons: [{type: "ok"}, {type: "cancel"}]
+            });
+        }
+        
+        // Показать подтверждение удаления
+        function showDeleteConfirm() {
+            const serverName = document.getElementById('controlServerName').value;
+            
+            if (!serverName) {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Введите название сервера",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
+            
+            document.getElementById('statusInfo').classList.add('hidden');
+            document.getElementById('deleteConfirm').classList.remove('hidden');
+        }
+        
+        // Удаление сервера
+        function deleteServer() {
+            const confirmation = document.getElementById('deleteConfirmation').value;
+            
+            if (confirmation.toLowerCase() !== 'delete my server') {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Введите точную фразу 'delete my server' для подтверждения",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
+            
+            const serverName = document.getElementById('controlServerName').value;
+            tg.showPopup({
+                title: "Удаление сервера",
+                message: `Сервер "${serverName}" будет удален без возможности восстановления.`,
+                buttons: [{type: "ok"}, {type: "cancel"}]
+            });
+        }
+        
+        // Показать статус сервера
+        function showServerStatus() {
+            const serverName = document.getElementById('controlServerName').value;
+            
+            if (!serverName) {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Введите название сервера",
+                    buttons: [{type: "ok"}]
+                });
+                return;
+            }
+            
+            document.getElementById('deleteConfirm').classList.add('hidden');
+            
+            // Заполняем данные о статусе
+            document.getElementById('statusName').textContent = serverName;
+            document.getElementById('statusPlayers').textContent = Math.floor(Math.random() * 10) + '/20';
+            document.getElementById('statusIp').textContent = `mc.${Math.random().toString(36).substring(2, 8)}.minecraftserver.com`;
+            document.getElementById('statusPort').textContent = Math.floor(Math.random() * 20000) + 10000;
+            document.getElementById('statusPing').textContent = Math.floor(Math.random() * 100) + 'ms';
+            
+            document.getElementById('statusInfo').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
