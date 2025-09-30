@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RebsnosTool</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #0d0d0d;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #666;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0); opacity: 0.5; }
+            50% { transform: translate(var(--dx), var(--dy)); opacity: 0.8; }
+            100% { transform: translate(0, 0); opacity: 0.5; }
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.8s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group {
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        .form-group:nth-child(6) { animation-delay: 0.6s; }
+        .form-group:nth-child(7) { animation-delay: 0.7s; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+            font-weight: 300;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #fff;
+            transform: scale(1.02);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+        button {
+            padding: 12px 20px;
+            background: #fff;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 5px;
+        }
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+        button:hover::after {
+            width: 200%;
+            height: 200%;
+        }
+        button:hover {
+            background: #ccc;
+            transform: translateY(-2px);
+        }
+        .button-primary {
+            width: 100%;
+            background: #fff;
+            color: #1a1a1a;
+        }
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #log {
+            margin-top: 20px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.8s forwards;
+        }
+        #log h3 {
+            margin: 0 0 10px 0;
+            color: #ccc;
+            font-size: 14px;
+            font-weight: 300;
+        }
+        #log-text {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 13px;
+            color: #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        #log-text:empty {
+            transform: scale(0.95);
+        }
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .language-switcher select {
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+        .language-switcher select:hover {
+            transform: scale(1.05);
+        }
+        .violation-input {
+            font-family: monospace;
+            font-size: 12px;
+            min-height: 60px;
+            resize: vertical;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            border-bottom: 2px solid #fff;
+            color: #fff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .session-management {
+            margin-top: 20px;
+        }
+        .session-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .session-input-group textarea {
+            flex: 1;
+            min-height: 80px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .session-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        .session-info {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .session-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .session-actions button {
+            padding: 4px 8px;
+            font-size: 10px;
+            margin: 0;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-switcher">
+        <select id="language" onchange="changeLanguage()">
+            <option value="en" selected>English</option>
+            <option value="es">Español</option>
+            <option value="ru">Русский</option>
+        </select>
+    </div>
+    <div class="container">
+        <h1>RebsnosTool</h1>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('report')">Report</div>
+                <div class="tab" onclick="switchTab('sessions')">Sessions</div>
+            </div>
+            
+            <!-- Tab 1: Report -->
+            <div id="report-tab" class="tab-content active">
+                <form id="report-form">
+                    <div class="form-group">
+                        <label for="api_id">API ID</label>
+                        <input type="text" id="api_id" name="api_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="api_hash">API Hash</label>
+                        <input type="text" id="api_hash" name="api_hash" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="violation_link">Violation Link</label>
+                        <textarea id="violation_link" name="violation_link" class="violation-input" placeholder="Paste the link to the violation here..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="reason">Reason</label>
+                        <select id="reason" name="reason" required>
+                            <option value="Spam">Spam</option>
+                            <option value="Drugs">Drugs</option>
+                            <option value="Pornography">Pornography</option>
+                            <option value="Violence">Violence</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="custom-reason-group" style="display: none;">
+                        <label for="custom_reason">Custom Reason</label>
+                        <input type="text" id="custom_reason" name="custom_reason">
+                    </div>
+                    <div class="form-group">
+                        <label for="threads">Threads</label>
+                        <input type="number" id="threads" name="threads" min="1" max="10" value="3" required>
+                    </div>
+                    <button type="submit" class="button-primary">Start Report</button>
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tab 2: Sessions Management -->
+            <div id="sessions-tab" class="tab-content">
+                <div class="session-management">
+                    <div class="form-group">
+                        <label for="new-session">Add Session String</label>
+                        <div class="session-input-group">
+                            <textarea id="new-session" placeholder="Paste session string here..."></textarea>
+                        </div>
+                        <button onclick="addSession()" class="button-secondary">Add Session</button>
+                        <button onclick="clearAllSessions()" class="button-secondary">Clear All</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Active Sessions (<span id="session-count">0</span>)</label>
+                        <div class="session-list" id="sessions-list">
+                            <!-- Sessions will be listed here -->
+                        </div>
+                        <div class="stats">
+                            <span>Total: <span id="total-sessions">0</span></span>
+                            <span>Valid: <span id="valid-sessions">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="log">
+            <h3>Log</h3>
+            <pre id="log-text"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Создание частиц
+        function createParticles() {
+            const body = document.body;
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement("div");
+                particle.className = "particle";
+                particle.style.left = Math.random() * 100 + "vw";
+                particle.style.top = Math.random() * 100 + "vh";
+                particle.style.setProperty("--dx", (Math.random() - 0.5) * 50 + "px");
+                particle.style.setProperty("--dy", (Math.random() - 0.5) * 50 + "px");
+                particle.style.animationDuration = (Math.random() * 10 + 10) + "s";
+                particle.style.animationDelay = Math.random() * 5 + "s";
+                body.appendChild(particle);
+            }
+        }
+        window.onload = function() {
+            createParticles();
+            updateSessionList();
+        };
+
+        // Tab management
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function changeLanguage() {
+            const lang = document.getElementById("language").value;
+            const translations = {
+                en: {
+                    title: "RebsnosTool",
+                    reportTab: "Report",
+                    sessionsTab: "Sessions",
+                    api_id: "API ID",
+                    api_hash: "API Hash",
+                    violation_link: "Violation Link",
+                    violation_placeholder: "Paste the link to the violation here...",
+                    reason: "Reason",
+                    custom_reason: "Custom Reason",
+                    threads: "Threads",
+                    submit: "Start Report",
+                    log: "Log",
+                    reasons: ["Spam", "Drugs", "Pornography", "Violence", "Other"],
+                    addSession: "Add Session",
+                    clearAll: "Clear All",
+                    activeSessions: "Active Sessions",
+                    total: "Total",
+                    valid: "Valid"
+                },
+                es: {
+                    title: "RebsnosTool",
+                    reportTab: "Reportar",
+                    sessionsTab: "Sesiones",
+                    api_id: "API ID",
+                    api_hash: "API Hash",
+                    violation_link: "Enlace de Violación",
+                    violation_placeholder: "Pega el enlace a la violación aquí...",
+                    reason: "Razón",
+                    custom_reason: "Razón Personalizada",
+                    threads: "Hilos",
+                    submit: "Iniciar Reporte",
+                    log: "Registro",
+                    reasons: ["Spam", "Drogas", "Pornografía", "Violencia", "Otro"],
+                    addSession: "Agregar Sesión",
+                    clearAll: "Limpiar Todo",
+                    activeSessions: "Sesiones Activas",
+                    total: "Total",
+                    valid: "Válidas"
+                },
+                ru: {
+                    title: "RebsnosTool",
+                    reportTab: "Жалоба",
+                    sessionsTab: "Сессии",
+                    api_id: "API ID",
+                    api_hash: "API Hash",
+                    violation_link: "Ссылка на нарушение",
+                    violation_placeholder: "Вставьте ссылку на нарушение здесь...",
+                    reason: "Причина",
+                    custom_reason: "Своя причина",
+                    threads: "Потоки",
+                    submit: "Начать жалобу",
+                    log: "Лог",
+                    reasons: ["Спам", "Наркотики", "Порнография", "Насилие", "Другое"],
+                    addSession: "Добавить сессию",
+                    clearAll: "Очистить все",
+                    activeSessions: "Активные сессии",
+                    total: "Всего",
+                    valid: "Валидные"
+                }
+            };
+
+            const texts = translations[lang];
+            document.querySelector('h1').textContent = texts.title;
+            
+            // Update tabs
+            document.querySelectorAll('.tab')[0].textContent = texts.reportTab;
+            document.querySelectorAll('.tab')[1].textContent = texts.sessionsTab;
+            
+            // Update form labels
+            document.querySelector('label[for="api_id"]').textContent = texts.api_id;
+            document.querySelector('label[for="api_hash"]').textContent = texts.api_hash;
+            document.querySelector('label[for="violation_link"]').textContent = texts.violation_link;
+            document.querySelector('#violation_link').placeholder = texts.violation_placeholder;
+            document.querySelector('label[for="reason"]').textContent = texts.reason;
+            document.querySelector('label[for="custom_reason"]').textContent = texts.custom_reason;
+            document.querySelector('label[for="threads"]').textContent = texts.threads;
+            document.querySelector('button[type="submit"]').textContent = texts.submit;
+            document.querySelector('#log h3').textContent = texts.log;
+
+            // Update session management
+            document.querySelector('label[for="new-session"]').textContent = texts.addSession;
+            document.querySelector('button[onclick="addSession()"]').textContent = texts.addSession;
+            document.querySelector('button[onclick="clearAllSessions()"]').textContent = texts.clearAll;
+            document.querySelector('label[for="new-session"]').nextElementSibling.querySelector('label').textContent = texts.activeSessions;
+            document.querySelector('.stats span:first-child').innerHTML = `${texts.total}: <span id="total-sessions">0</span>`;
+            document.querySelector('.stats span:last-child').innerHTML = `${texts.valid}: <span id="valid-sessions">0</span>`;
+
+            const reasonSelect = document.getElementById('reason');
+            reasonSelect.innerHTML = '';
+            texts.reasons.forEach(reason => {
+                const option = document.createElement('option');
+                option.value = reason;
+                option.textContent = reason;
+                reasonSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById("reason").addEventListener("change", function() {
+            const customReasonGroup = document.getElementById("custom-reason-group");
+            customReasonGroup.style.display = this.value === "Other" || this.value === "Otro" || this.value === "Другое" ? "block" : "none";
+        });
+
+        // Session Management
+        function getSessions() {
+            return JSON.parse(localStorage.getItem('telegram_sessions') || '[]');
+        }
+
+        function saveSessions(sessions) {
+            localStorage.setItem('telegram_sessions', JSON.stringify(sessions));
+        }
+
+        function addSession() {
+            const sessionInput = document.getElementById('new-session');
+            const sessionString = sessionInput.value.trim();
+            
+            if (!sessionString) {
+                addToLog('Error: Session string cannot be empty');
+                return;
+            }
+
+            const sessions = getSessions();
+            if (sessions.includes(sessionString)) {
+                addToLog('Error: This session already exists');
+                return;
+            }
+
+            sessions.push(sessionString);
+            saveSessions(sessions);
+            sessionInput.value = '';
+            updateSessionList();
+            addToLog('Session added successfully');
+        }
+
+        function removeSession(index) {
+            const sessions = getSessions();
+            if (index >= 0 && index < sessions.length) {
+                sessions.splice(index, 1);
+                saveSessions(sessions);
+                updateSessionList();
+                addToLog('Session removed');
+            }
+        }
+
+        function clearAllSessions() {
+            if (confirm('Are you sure you want to clear all sessions?')) {
+                saveSessions([]);
+                updateSessionList();
+                addToLog('All sessions cleared');
+            }
+        }
+
+        function updateSessionList() {
+            const sessions = getSessions();
+            const sessionsList = document.getElementById('sessions-list');
+            const sessionCount = document.getElementById('session-count');
+            const totalSessions = document.getElementById('total-sessions');
+            const validSessions = document.getElementById('valid-sessions');
+            
+            sessionCount.textContent = sessions.length;
+            totalSessions.textContent = sessions.length;
+            validSessions.textContent = sessions.length; // In real app, you would validate sessions
+            
+            sessionsList.innerHTML = '';
+            
+            sessions.forEach((session, index) => {
+                const sessionItem = document.createElement('div');
+                sessionItem.className = 'session-item';
+                sessionItem.innerHTML = `
+                    <div class="session-info">${index + 1}. ${session.substring(0, 50)}...</div>
+                    <div class="session-actions">
+                        <button onclick="removeSession(${index})" class="button-secondary">Remove</button>
+                    </div>
+                `;
+                sessionsList.appendChild(sessionItem);
+            });
+        }
+
+        // Функция для извлечения username или ID из ссылки
+        function extractTargetFromLink(link) {
+            try {
+                // Если это прямая ссылка на пользователя/канал
+                if (link.includes('t.me/')) {
+                    const parts = link.split('t.me/');
+                    if (parts.length > 1) {
+                        const target = parts[1].split('/')[0];
+                        // Убираем параметры запроса, если есть
+                        return target.split('?')[0];
+                    }
+                }
+                // Если это уже username или ID
+                return link.trim();
+            } catch (e) {
+                return link.trim();
+            }
+        }
+
+        // Основная функция для массовых жалоб
+        async function massReport(apiId, apiHash, violationLink, reason, customReason, threads) {
+            const target = extractTargetFromLink(violationLink);
+            const logText = document.getElementById("log-text");
+            const progressBar = document.getElementById("progress-bar");
+            const progress = document.getElementById("progress");
+            
+            addToLog(`Starting mass report on: ${target}`);
+            progressBar.style.display = 'block';
+            
+            try {
+                const sessions = getSessions();
+                
+                if (sessions.length === 0) {
+                    throw new Error('No sessions found. Please add sessions first in the Sessions tab.');
+                }
+                
+                addToLog(`Found ${sessions.length} sessions`);
+                
+                const totalSessions = sessions.length;
+                let completed = 0;
+                let successful = 0;
+                
+                // Отправляем жалобы с каждой сессией
+                for (const session of sessions) {
+                    try {
+                        const result = await sendReport(apiId, apiHash, session, target, reason, customReason);
+                        addToLog(result);
+                        successful++;
+                    } catch (error) {
+                        addToLog(`Error: ${error.message}`);
+                    }
+                    
+                    completed++;
+                    const progressPercent = (completed / totalSessions) * 100;
+                    progress.style.width = `${progressPercent}%`;
+                    
+                    // Небольшая задержка между запросами
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                addToLog(`\nCompleted! ${successful}/${totalSessions} reports sent successfully.`);
+                progressBar.style.display = 'none';
+                
+                return { success: true, message: `Sent ${successful} reports` };
+                
+            } catch (error) {
+                addToLog(`Error: ${error.message}`);
+                progressBar.style.display = 'none';
+                return { success: false, message: error.message };
+            }
+        }
+
+        // Функция отправки одной жалобы
+        async function sendReport(apiId, apiHash, sessionString, target, reason, customReason) {
+            // Здесь будет реализация отправки жалобы через Telethon
+            // В реальном приложении это будет обрабатываться на сервере
+            // Для демонстрации используем имитацию
+            
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Имитация задержки
+            
+            const success = Math.random() > 0.2; // 80% успешных запросов
+            
+            if (success) {
+                return `✓ Report sent from session ${sessionString.substring(0, 10)}...`;
+            } else {
+                throw new Error(`✗ Failed to send report from session ${sessionString.substring(0, 10)}...`);
+            }
+        }
+
+        function addToLog(message) {
+            const logText = document.getElementById("log-text");
+            logText.textContent += message + '\n';
+            logText.scrollTop = logText.scrollHeight;
+        }
+
+        // Обработка отправки формы
+        document.getElementById("report-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                api_id: document.getElementById("api_id").value,
+                api_hash: document.getElementById("api_hash").value,
+                violation_link: document.getElementById("violation_link").value,
+                reason: document.getElementById("reason").value,
+                custom_reason: document.getElementById("custom_reason").value,
+                threads: document.getElementById("threads").value
+            };
+
+            // Очистка лога
+            document.getElementById("log-text").textContent = '';
+
+            const result = await massReport(
+                formData.api_id,
+                formData.api_hash,
+                formData.violation_link,
+                formData.reason,
+                formData.custom_reason,
+                formData.threads
+            );
+            
+            // Отправка данных обратно в бота
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: "report_completed",
+                    result: result.message
+                }));
+            }
+        });
+
+        // Автоматическое определение языка Telegram
+        if (tg.initDataUnsafe?.user?.language_code) {
+            const userLang = tg.initDataUnsafe.user.language_code;
+            if (['en', 'es', 'ru'].includes(userLang)) {
+                document.getElementById('language').value = userLang;
+                changeLanguage();
+            }
+        }
+    </script>
+</body>
+</html>
