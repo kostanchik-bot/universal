@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Яндекс.Музыка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'YS Text', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: #121212;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Шапка */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .search-icon, .profile-icon {
+            width: 24px;
+            height: 24px;
+            color: #fff;
+        }
+
+        /* Основной контент */
+        .main-content {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* Быстрый доступ */
+        .quick-access {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .quick-item {
+            background: #1E1E1E;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .quick-item .icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        /* Плейлисты */
+        .playlists {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .playlist-item {
+            background: #1E1E1E;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .playlist-cover {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .playlist-info {
+            padding: 12px;
+        }
+
+        .playlist-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .playlist-subtitle {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Нижняя панель */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1E1E1E;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #333;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            color: #888;
+        }
+
+        .nav-text {
+            font-size: 10px;
+            color: #888;
+        }
+
+        .nav-item.active .nav-icon,
+        .nav-item.active .nav-text {
+            color: #FFD700;
+        }
+
+        /* Текущий трек */
+        .current-track {
+            background: #1E1E1E;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 80px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .track-cover {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+        }
+
+        .track-info {
+            flex: 1;
+        }
+
+        .track-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .track-artist {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .play-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .control-icon {
+            width: 20px;
+            height: 20px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <div class="header">
+            <div class="logo">Яндекс Музыка</div>
+            <div class="header-icons">
+                <span class="search-icon">🔍</span>
+                <span class="profile-icon">👤</span>
+            </div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Быстрый доступ -->
+            <div class="quick-access">
+                <div class="quick-item">
+                    <div class="icon">🎵</div>
+                    <div>Моя волна</div>
+                </div>
+                <div class="quick-item">
+                    <div class="icon">❤️</div>
+                    <div>Понравившиеся</div>
+                </div>
+                <div class="quick-item">
+                    <div class="icon">🎧</div>
+                    <div>Плейлисты</div>
+                </div>
+                <div class="quick-item">
+                    <div class="icon">🔍</div>
+                    <div>Поиск</div>
+                </div>
+            </div>
+
+            <!-- Рекомендации -->
+            <h2 class="section-title">Рекомендуем</h2>
+            <div class="playlists">
+                <div class="playlist-item">
+                    <div class="playlist-cover">🎸</div>
+                    <div class="playlist-info">
+                        <div class="playlist-title">Рок хиты</div>
+                        <div class="playlist-subtitle">Лучшие рок-композиции</div>
+                    </div>
+                </div>
+                <div class="playlist-item">
+                    <div class="playlist-cover">🎹</div>
+                    <div class="playlist-info">
+                        <div class="playlist-title">Электроника</div>
+                        <div class="playlist-subtitle">Электронные биты</div>
+                    </div>
+                </div>
+                <div class="playlist-item">
+                    <div class="playlist-cover">🎤</div>
+                    <div class="playlist-info">
+                        <div class="playlist-title">Поп-музыка</div>
+                        <div class="playlist-subtitle">Актуальные хиты</div>
+                    </div>
+                </div>
+                <div class="playlist-item">
+                    <div class="playlist-cover">🎷</div>
+                    <div class="playlist-info">
+                        <div class="playlist-title">Джаз</div>
+                        <div class="playlist-subtitle">Классический джаз</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Текущий трек -->
+        <div class="current-track">
+            <div class="track-cover"></div>
+            <div class="track-info">
+                <div class="track-title">Название трека</div>
+                <div class="track-artist">Исполнитель</div>
+            </div>
+            <div class="play-controls">
+                <span class="control-icon">⏮</span>
+                <span class="control-icon">▶️</span>
+                <span class="control-icon">⏭</span>
+            </div>
+        </div>
+
+        <!-- Нижняя панель -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Главная</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-text">Поиск</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Медиатека</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Простой функционал для демонстрации
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработка кликов по навигации
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Обработка кликов по плейлистам
+            const playlistItems = document.querySelectorAll('.playlist-item');
+            playlistItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    alert('Плейлист открыт!');
+                });
+            });
+
+            // Обработка кликов по быстрому доступу
+            const quickItems = document.querySelectorAll('.quick-item');
+            quickItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const text = this.querySelector('div:last-child').textContent;
+                    alert(`Открыт раздел: ${text}`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
