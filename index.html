@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RebsnosTool</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #0d0d0d;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #666;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0); opacity: 0.5; }
+            50% { transform: translate(var(--dx), var(--dy)); opacity: 0.8; }
+            100% { transform: translate(0, 0); opacity: 0.5; }
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.8s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group {
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        .form-group:nth-child(6) { animation-delay: 0.6s; }
+        .form-group:nth-child(7) { animation-delay: 0.7s; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+            font-weight: 300;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #fff;
+            transform: scale(1.02);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #fff;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+        button:hover::after {
+            width: 200%;
+            height: 200%;
+        }
+        button:hover {
+            background: #ccc;
+            transform: translateY(-2px);
+        }
+        #log {
+            margin-top: 20px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.8s forwards;
+        }
+        #log h3 {
+            margin: 0 0 10px 0;
+            color: #ccc;
+            font-size: 14px;
+            font-weight: 300;
+        }
+        #log-text {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 13px;
+            color: #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        #log-text:empty {
+            transform: scale(0.95);
+        }
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .language-switcher select {
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+        .language-switcher select:hover {
+            transform: scale(1.05);
+        }
+        .session-input {
+            font-family: monospace;
+            font-size: 12px;
+            min-height: 60px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-switcher">
+        <select id="language" onchange="changeLanguage()">
+            <option value="en" selected>English</option>
+            <option value="es">Español</option>
+            <option value="ru">Русский</option>
+        </select>
+    </div>
+    <div class="container">
+        <h1>RebsnosTool</h1>
+        <form id="report-form">
+            <div class="form-group">
+                <label for="api_id">API ID</label>
+                <input type="text" id="api_id" name="api_id" required>
+            </div>
+            <div class="form-group">
+                <label for="api_hash">API Hash</label>
+                <input type="text" id="api_hash" name="api_hash" required>
+            </div>
+            <div class="form-group">
+                <label for="target">Target (@username or ID)</label>
+                <input type="text" id="target" name="target" required>
+            </div>
+            <div class="form-group">
+                <label for="reason">Reason</label>
+                <select id="reason" name="reason" required>
+                    <option value="Spam">Spam</option>
+                    <option value="Drugs">Drugs</option>
+                    <option value="Pornography">Pornography</option>
+                    <option value="Violence">Violence</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group" id="custom-reason-group" style="display: none;">
+                <label for="custom_reason">Custom Reason</label>
+                <input type="text" id="custom_reason" name="custom_reason">
+            </div>
+            <div class="form-group">
+                <label for="sessions">Session Strings (one per line)</label>
+                <textarea id="sessions" name="sessions" class="session-input" placeholder="Paste your session strings here, one per line..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="threads">Threads</label>
+                <input type="number" id="threads" name="threads" min="1" max="10" value="3" required>
+            </div>
+            <button type="submit">Снести</button>
+        </form>
+        <div id="log">
+            <h3>Log</h3>
+            <pre id="log-text"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Создание частиц
+        function createParticles() {
+            const body = document.body;
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement("div");
+                particle.className = "particle";
+                particle.style.left = Math.random() * 100 + "vw";
+                particle.style.top = Math.random() * 100 + "vh";
+                particle.style.setProperty("--dx", (Math.random() - 0.5) * 50 + "px");
+                particle.style.setProperty("--dy", (Math.random() - 0.5) * 50 + "px");
+                particle.style.animationDuration = (Math.random() * 10 + 10) + "s";
+                particle.style.animationDelay = Math.random() * 5 + "s";
+                body.appendChild(particle);
+            }
+        }
+        window.onload = createParticles;
+
+        function changeLanguage() {
+            const lang = document.getElementById("language").value;
+            const translations = {
+                en: {
+                    title: "RebsnosTool",
+                    api_id: "API ID",
+                    api_hash: "API Hash",
+                    target: "Target (@username or ID)",
+                    reason: "Reason",
+                    custom_reason: "Custom Reason",
+                    sessions: "Session Strings (one per line)",
+                    sessions_placeholder: "Paste your session strings here, one per line...",
+                    threads: "Threads",
+                    submit: "Снести",
+                    log: "Log",
+                    reasons: ["Spam", "Drugs", "Pornography", "Violence", "Other"]
+                },
+                es: {
+                    title: "RebsnosTool",
+                    api_id: "API ID",
+                    api_hash: "API Hash",
+                    target: "Objetivo (@username o ID)",
+                    reason: "Razón",
+                    custom_reason: "Razón Personalizada",
+                    sessions: "Strings de Sesión (uno por línea)",
+                    sessions_placeholder: "Pega tus strings de sesión aquí, uno por línea...",
+                    threads: "Hilos",
+                    submit: "Derribar",
+                    log: "Registro",
+                    reasons: ["Spam", "Drogas", "Pornografía", "Violencia", "Otro"]
+                },
+                ru: {
+                    title: "RebsnosTool",
+                    api_id: "API ID",
+                    api_hash: "API Hash",
+                    target: "Цель (@username или ID)",
+                    reason: "Причина",
+                    custom_reason: "Своя причина",
+                    sessions: "Сессионные строки (по одной на строку)",
+                    sessions_placeholder: "Вставьте ваши сессионные строки здесь, по одной на строку...",
+                    threads: "Потоки",
+                    submit: "Снести",
+                    log: "Лог",
+                    reasons: ["Спам", "Наркотики", "Порнография", "Насилие", "Другое"]
+                }
+            };
+
+            const texts = translations[lang];
+            document.querySelector('h1').textContent = texts.title;
+            document.querySelector('label[for="api_id"]').textContent = texts.api_id;
+            document.querySelector('label[for="api_hash"]').textContent = texts.api_hash;
+            document.querySelector('label[for="target"]').textContent = texts.target;
+            document.querySelector('label[for="reason"]').textContent = texts.reason;
+            document.querySelector('label[for="custom_reason"]').textContent = texts.custom_reason;
+            document.querySelector('label[for="sessions"]').textContent = texts.sessions;
+            document.querySelector('#sessions').placeholder = texts.sessions_placeholder;
+            document.querySelector('label[for="threads"]').textContent = texts.threads;
+            document.querySelector('button[type="submit"]').textContent = texts.submit;
+            document.querySelector('#log h3').textContent = texts.log;
+
+            const reasonSelect = document.getElementById('reason');
+            reasonSelect.innerHTML = '';
+            texts.reasons.forEach(reason => {
+                const option = document.createElement('option');
+                option.value = reason;
+                option.textContent = reason;
+                reasonSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById("reason").addEventListener("change", function() {
+            const customReasonGroup = document.getElementById("custom-reason-group");
+            customReasonGroup.style.display = this.value === "Other" || this.value === "Otro" || this.value === "Другое" ? "block" : "none";
+        });
+
+        document.getElementById("report-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                api_id: document.getElementById("api_id").value,
+                api_hash: document.getElementById("api_hash").value,
+                target: document.getElementById("target").value,
+                reason: document.getElementById("reason").value,
+                custom_reason: document.getElementById("custom_reason").value,
+                threads: document.getElementById("threads").value,
+                sessions: document.getElementById("sessions").value.split('\n').filter(s => s.trim())
+            };
+
+            const logText = document.getElementById("log-text");
+            logText.textContent = "Starting mass report...\n";
+
+            try {
+                const response = await fetch("/api/report", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+                const result = await response.json();
+
+                logText.textContent += `${result.message}\n`;
+                logText.scrollTop = logText.scrollHeight;
+                
+                // Отправка данных обратно в бота
+                if (tg && tg.sendData) {
+                    tg.sendData(JSON.stringify({
+                        action: "report_completed",
+                        result: result.message
+                    }));
+                }
+            } catch (error) {
+                logText.textContent += `Error: ${error.message}\n`;
+                logText.scrollTop = logText.scrollHeight;
+            }
+        });
+
+        // Автоматическое определение языка Telegram
+        if (tg.initDataUnsafe?.user?.language_code) {
+            const userLang = tg.initDataUnsafe.user.language_code;
+            if (['en', 'es', 'ru'].includes(userLang)) {
+                document.getElementById('language').value = userLang;
+                changeLanguage();
+            }
+        }
+    </script>
+</body>
+</html>
